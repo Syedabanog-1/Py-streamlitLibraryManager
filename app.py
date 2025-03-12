@@ -1,4 +1,6 @@
 import streamlit as st
+import pickle
+import os
 
 class Book:
     def __init__(self, title, author, publish_year, gender, read):
@@ -13,14 +15,27 @@ class Book:
 
 class Library:
     def __init__(self):
-        self.books = []
+        self.file_name = "books.pkl"
+        self.books = self.load_books()
+
+    def load_books(self):
+        if os.path.exists(self.file_name):
+            with open(self.file_name, "rb") as file:
+                return pickle.load(file)
+        return []
+
+    def save_books(self):
+        with open(self.file_name, "wb") as file:
+            pickle.dump(self.books, file)
 
     def add_book(self, title, author, publish_year, gender, read):
         new_book = Book(title, author, publish_year, gender, read)
         self.books.append(new_book)
+        self.save_books()
 
     def remove_book(self, title):
         self.books = [book for book in self.books if book.title.lower() != title.lower()]
+        self.save_books()
 
     def search_book(self, keyword):
         return [book for book in self.books if keyword.lower() in book.title.lower() or keyword.lower() in book.author.lower()]
@@ -44,7 +59,7 @@ if menu == "Add Book":
     title = st.text_input("Title")
     author = st.text_input("Author")
     publish_year = st.text_input("Publish Year")
-    gender = st.text_input("Genre")
+    gender = st.selectbox("Select Gender", ["Male", "Female"])
     read = st.checkbox("Have you read this book?")
     if st.button("Add Book"):
         library.add_book(title, author, publish_year, gender, read)
